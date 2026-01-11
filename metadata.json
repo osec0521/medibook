@@ -1,0 +1,5 @@
+{
+  "name": "MediBook",
+  "description": "A modern hospital appointment booking application with integrated location services and AI assistance.",
+  "requestFramePermissions": []
+}
