@@ -3,11 +3,20 @@ import { HOSPITALS } from '../constants';
 import { useLanguage } from '../LanguageContext';
 
 export const HospitalList: React.FC = () => {
-  const { language } = useLanguage();
+  const { language, t, selectedHospitalId, setSelectedHospitalId } = useLanguage();
   const sliderRef = useRef<HTMLDivElement>(null);
   const [isDown, setIsDown] = useState(false);
   const [startX, setStartX] = useState(0);
   const [scrollLeft, setScrollLeft] = useState(0);
+
+  const handleHospitalClick = (id: string) => {
+    setSelectedHospitalId(id);
+    // Scroll to map section if needed, but for now just update state
+    const mapElement = document.getElementById('location-map');
+    if (mapElement) {
+      mapElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  };
 
   const handleMouseDown = (e: React.MouseEvent) => {
     if (!sliderRef.current) return;
@@ -37,7 +46,16 @@ export const HospitalList: React.FC = () => {
   };
 
   return (
-    <div className="w-full mt-4 group">
+    <div className="w-full mt-6 group">
+      <div className="px-4 mb-4">
+        <h2 className="text-xl font-bold text-[#111618] dark:text-white leading-tight">
+          {t.hospitalTitle}
+        </h2>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+          {t.hospitalDesc}
+        </p>
+      </div>
+
       <div 
         ref={sliderRef}
         className={`flex overflow-x-auto no-scrollbar pb-4 pl-4 gap-4 snap-x snap-mandatory ${isDown ? 'cursor-grabbing' : 'cursor-grab'}`}
@@ -49,7 +67,8 @@ export const HospitalList: React.FC = () => {
         {HOSPITALS.map((hospital) => (
           <div 
             key={hospital.id} 
-            className="flex flex-col gap-3 min-w-[280px] snap-center bg-white dark:bg-[#1a2c36] p-3 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 transition-all hover:shadow-md select-none"
+            onClick={() => handleHospitalClick(hospital.id)}
+            className={`flex flex-col gap-3 min-w-[280px] snap-center bg-white dark:bg-[#1a2c36] p-3 rounded-xl shadow-sm border transition-all hover:shadow-md select-none cursor-pointer ${selectedHospitalId === hospital.id ? 'border-primary ring-1 ring-primary' : 'border-gray-100 dark:border-gray-800'}`}
           >
             <div className="w-full aspect-video bg-gray-200 dark:bg-gray-700 rounded-lg relative overflow-hidden group">
               <img
@@ -59,8 +78,10 @@ export const HospitalList: React.FC = () => {
                 onError={handleImageError}
               />
               <div className="absolute top-2 right-2 bg-white/90 dark:bg-black/60 backdrop-blur px-2 py-1 rounded-md flex items-center gap-1 shadow-sm">
-                <span className="material-symbols-outlined text-amber-400 text-[16px] leading-none">star</span>
-                <span className="text-xs font-bold text-[#111618] dark:text-white leading-none">{hospital.rating}</span>
+                <span className="material-symbols-outlined text-primary text-[16px] leading-none">location_on</span>
+                <span className="text-xs font-bold text-[#111618] dark:text-white leading-none">
+                  {language === 'ko' ? hospital.regionKo : hospital.regionEn}
+                </span>
               </div>
             </div>
             
@@ -69,11 +90,16 @@ export const HospitalList: React.FC = () => {
                 {language === 'ko' ? hospital.nameKo : hospital.name}
               </p>
               <div className="flex items-center gap-1 mt-1 text-gray-500 dark:text-gray-400 text-sm">
-                <span className="material-symbols-outlined text-[16px]">location_on</span>
+                <span className="material-symbols-outlined text-[16px]">schedule</span>
                 <span>
-                  {language === 'ko' ? hospital.distanceKo : hospital.distance} • {language === 'ko' ? hospital.hoursKo : hospital.hours}
+                  {language === 'ko' ? hospital.hoursKo : hospital.hours}
                 </span>
               </div>
+              {(language === 'ko' ? hospital.subjectsKo : hospital.subjectsEn) && (
+                <div className="mt-1 text-primary text-xs font-medium">
+                  {language === 'ko' ? hospital.subjectsKo : hospital.subjectsEn}
+                </div>
+              )}
             </div>
           </div>
         ))}

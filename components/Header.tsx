@@ -1,5 +1,6 @@
 import React from 'react';
 import { useLanguage } from '../LanguageContext';
+import { Link } from 'react-router-dom';
 
 export const Header: React.FC = () => {
   const { language, setLanguage, t } = useLanguage();
@@ -36,6 +37,13 @@ export const Header: React.FC = () => {
       </h2>
       
       <div className="flex items-center gap-2">
+        <Link 
+          to="/admin" 
+          className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors text-gray-600 dark:text-gray-400"
+          title="Admin Dashboard"
+        >
+          <span className="material-symbols-outlined text-sm">settings</span>
+        </Link>
         <button
           onClick={toggleLanguage}
           className="px-2 py-1 rounded-md text-xs font-bold text-gray-600 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all"

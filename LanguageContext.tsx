@@ -6,11 +6,12 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 
 export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [language, setLanguage] = useState<Language>('ko'); // Default to Korean
+  const [selectedHospitalId, setSelectedHospitalId] = useState<string>('1'); // Default to first hospital
 
   const t = TRANSLATIONS[language];
 
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, t }}>
+    <LanguageContext.Provider value={{ language, setLanguage, selectedHospitalId, setSelectedHospitalId, t }}>
       {children}
     </LanguageContext.Provider>
   );

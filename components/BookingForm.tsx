@@ -16,7 +16,44 @@ export const BookingForm: React.FC = () => {
   
   // Custom Modal State
   const [showModal, setShowModal] = useState(false);
+  const [modalTitle, setModalTitle] = useState('');
   const [modalMessage, setModalMessage] = useState('');
+  const [modalType, setModalType] = useState<'error' | 'info'>('error');
+
+  const TERMS_CONTENT = `제1조 (목적 및 서비스)
+본 약관은 회사가 제공하는 메디컬·웰니스 케어 서비스 및 관련 상담, 예약 안내 서비스 이용에 관한 권리와 의무를 규정합니다.
+
+제2조 (의료행위의 제한)
+회사는 정보 제공 및 플랫폼 운영자로서, 직접적인 의료행위를 수행하지 않습니다. 모든 의학적 진단과 치료는 해당 의료기관의 전문 의료진을 통해 이루어집니다.
+
+제3조 (이용자의 의무)
+회원은 서비스 이용 시 본인의 정확한 건강 상태 정보를 제공해야 합니다.
+타인의 정보를 도용하거나 서비스 운영을 방해하는 행위를 금합니다.`;
+
+  const PRIVACY_CONTENT = `[수집 및 이용 안내]
+구분: 내용
+수집 항목: 성명, 연락처, 이메일, 생년월일, 건강정보(상담내역)
+수집 목적: 맞춤형 케어 서비스 제공, 예약 관리, 본인 확인
+보유 기간: 회원 탈퇴 시 즉시 파기 (단, 법령에 의거 보관 필요 시 해당 기간 준수)
+
+[제3자 제공]
+메디컬·웰니스 케어 서비스 및 관련 상담, 예약 안내 서비스를 위해 최소한의 정보에 한해 해당 기관에 공유됩니다.`;
+
+  const handleShowTerms = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setModalTitle(t.terms);
+    setModalMessage(TERMS_CONTENT);
+    setModalType('info');
+    setShowModal(true);
+  };
+
+  const handleShowPrivacy = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setModalTitle(t.privacy);
+    setModalMessage(PRIVACY_CONTENT);
+    setModalType('info');
+    setShowModal(true);
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
@@ -38,7 +75,9 @@ export const BookingForm: React.FC = () => {
 
     // If there are missing fields, show custom popup and block submission
     if (missingFields.length > 0) {
+      setModalTitle(t.inputCheck);
       setModalMessage(`${t.missingFields}${missingFields.join(', ')}`);
+      setModalType('error');
       setShowModal(true);
       return;
     }
@@ -120,7 +159,7 @@ export const BookingForm: React.FC = () => {
           </div>
           <div className="text-sm leading-6">
             <label htmlFor="consent" className="font-normal text-gray-600 dark:text-gray-400">
-              {t.agree} <a href="#" className="font-semibold text-primary hover:text-primary/80">{t.terms}</a> & <a href="#" className="font-semibold text-primary hover:text-primary/80">{t.privacy}</a>.
+              {t.agree} <button type="button" onClick={handleShowTerms} className="font-semibold text-primary hover:text-primary/80">{t.terms}</button> & <button type="button" onClick={handleShowPrivacy} className="font-semibold text-primary hover:text-primary/80">{t.privacy}</button>.
             </label>
           </div>
         </div>
@@ -156,23 +195,27 @@ export const BookingForm: React.FC = () => {
         )}
       </form>
 
-      {/* Custom Validation Modal */}
+      {/* Custom Modal */}
       {showModal && (
          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-[2px] animate-in fade-in duration-200">
            <div 
-            className="bg-white dark:bg-[#1a2c36] rounded-2xl shadow-2xl w-full max-w-[320px] overflow-hidden transform transition-all scale-100 animate-in zoom-in-95 duration-200"
+            className="bg-white dark:bg-[#1a2c36] rounded-2xl shadow-2xl w-full max-w-[340px] overflow-hidden transform transition-all scale-100 animate-in zoom-in-95 duration-200"
             onClick={(e) => e.stopPropagation()}
            >
-             <div className="p-6 text-center flex flex-col items-center">
-               <div className="flex items-center justify-center size-12 rounded-full bg-red-50 dark:bg-red-900/20 mb-4">
-                 <span className="material-symbols-outlined text-red-500 dark:text-red-400 text-[28px]">priority_high</span>
+             <div className="p-6 flex flex-col items-center">
+               <div className={`flex items-center justify-center size-12 rounded-full mb-4 ${modalType === 'error' ? 'bg-red-50 dark:bg-red-900/20' : 'bg-blue-50 dark:bg-blue-900/20'}`}>
+                 <span className={`material-symbols-outlined text-[28px] ${modalType === 'error' ? 'text-red-500 dark:text-red-400' : 'text-blue-500 dark:text-blue-400'}`}>
+                   {modalType === 'error' ? 'priority_high' : 'info'}
+                 </span>
                </div>
-               <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2 leading-tight">
-                 {t.inputCheck}
+               <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-3 leading-tight">
+                 {modalTitle}
                </h3>
-               <p className="text-sm text-gray-600 dark:text-gray-300 whitespace-pre-wrap leading-relaxed">
-                 {modalMessage}
-               </p>
+               <div className="w-full max-h-[300px] overflow-y-auto pr-1 custom-scrollbar">
+                 <p className="text-sm text-gray-600 dark:text-gray-300 whitespace-pre-wrap leading-relaxed text-left">
+                   {modalMessage}
+                 </p>
+               </div>
              </div>
              <div className="border-t border-gray-100 dark:border-gray-700 p-4">
                <button
