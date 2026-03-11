@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { User, onAuthStateChanged, signInWithRedirect, GoogleAuthProvider, signOut } from 'firebase/auth';
+import { User, onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signOut } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { auth, db } from './firebase';
 
@@ -20,30 +20,35 @@ export const FirebaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      setUser(currentUser);
-      if (currentUser) {
-        // Fetch or create user profile
-        const userDocRef = doc(db, 'users', currentUser.uid);
-        const userDoc = await getDoc(userDocRef);
+      try {
+        setUser(currentUser);
+        if (currentUser) {
+          // Fetch or create user profile
+          const userDocRef = doc(db, 'users', currentUser.uid);
+          const userDoc = await getDoc(userDocRef);
 
-        if (userDoc.exists()) {
-          setRole(userDoc.data().role);
+          if (userDoc.exists()) {
+            setRole(userDoc.data().role);
+          } else {
+            // Default role for new users
+            const newRole = currentUser.email === 'osec0521@gmail.com' ? 'admin' : 'client';
+            await setDoc(userDocRef, {
+              uid: currentUser.uid,
+              email: currentUser.email,
+              displayName: currentUser.displayName,
+              role: newRole,
+              createdAt: new Date().toISOString()
+            });
+            setRole(newRole);
+          }
         } else {
-          // Default role for new users
-          const newRole = currentUser.email === 'osec0521@gmail.com' ? 'admin' : 'client';
-          await setDoc(userDocRef, {
-            uid: currentUser.uid,
-            email: currentUser.email,
-            displayName: currentUser.displayName,
-            role: newRole,
-            createdAt: new Date().toISOString()
-          });
-          setRole(newRole);
+          setRole(null);
         }
-      } else {
-        setRole(null);
+      } catch (error) {
+        console.error("Error in onAuthStateChanged:", error);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     });
 
     return () => unsubscribe();
@@ -51,7 +56,7 @@ export const FirebaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const login = async () => {
     const provider = new GoogleAuthProvider();
-    await signInWithRedirect(auth, provider);
+    await signInWithPopup(auth, provider);
   };
 
   const logout = async () => {
