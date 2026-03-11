@@ -29,6 +29,8 @@ export const TRANSLATIONS = {
     missingFields: "다음 정보를 입력해주세요:\n",
     inputCheck: "입력 확인",
     confirm: "확인",
+    duplicatePhone: "이미 핸드폰 번호가 등록된 고객 입니다",
+    duplicateEmail: "이미 이메일이 등록된 고객 입니다",
     hospitalTitle: "이용 가능 메디컬 및 웰니스 인프라",
     hospitalDesc: "프리미엄 메디컬 & 웰니스 센터"
   },
@@ -60,6 +62,8 @@ export const TRANSLATIONS = {
     missingFields: "Please enter the following fields:\n",
     inputCheck: "Check Input",
     confirm: "OK",
+    duplicatePhone: "Customer with this phone number is already registered",
+    duplicateEmail: "Customer with this email is already registered",
     hospitalTitle: "Available Medical & Wellness Infra",
     hospitalDesc: "Premium Medical & Wellness Centers"
   }

@@ -117,12 +117,17 @@ export const BookingForm: React.FC = () => {
       setStatus(BookingStatus.ERROR);
       if (result.errorType === 'phone') {
         setModalTitle(language === 'ko' ? '등록 실패' : 'Registration Failed');
-        setModalMessage(language === 'ko' ? '이미 핸드폰 번호가 등록된 고객 입니다' : 'Customer with this phone number is already registered');
+        setModalMessage(t.duplicatePhone);
         setModalType('error');
         setShowModal(true);
       } else if (result.errorType === 'email') {
         setModalTitle(language === 'ko' ? '등록 실패' : 'Registration Failed');
-        setModalMessage(language === 'ko' ? '이미 이메일이 등록된 고객 입니다' : 'Customer with this email is already registered');
+        setModalMessage(t.duplicateEmail);
+        setModalType('error');
+        setShowModal(true);
+      } else {
+        setModalTitle(language === 'ko' ? '오류 발생' : 'Error Occurred');
+        setModalMessage(language === 'ko' ? '예약 처리 중 오류가 발생했습니다. 다시 시도해주세요.' : 'An error occurred while processing your booking. Please try again.');
         setModalType('error');
         setShowModal(true);
       }

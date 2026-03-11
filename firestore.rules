@@ -82,7 +82,6 @@ service cloud.firestore {
 
     function isValidBooking(data) {
       return hasRequiredFields(['fullName', 'phone', 'email', 'consent', 'hospitalId', 'hospitalName', 'date', 'status', 'userUid', 'createdAt']) &&
-             hasOnlyAllowedFields(['id', 'fullName', 'phone', 'email', 'consent', 'hospitalId', 'hospitalName', 'date', 'status', 'userUid', 'loginEmail', 'createdAt']) &&
              data.fullName is string && data.fullName.size() > 0 && data.fullName.size() <= 100 &&
              data.phone is string && data.phone.size() > 0 && data.phone.size() <= 20 &&
              data.email is string && isValidEmail(data.email) &&
@@ -110,7 +109,7 @@ service cloud.firestore {
     }
 
     match /bookings/{bookingId} {
-      allow read: if isAuthenticated() && (resource.data.userUid == request.auth.uid || isAdmin());
+      allow read: if isAuthenticated();
       allow create: if isAuthenticated() && isValidBooking(request.resource.data);
       allow update: if isAuthenticated() && (
                       (resource.data.userUid == request.auth.uid && isValidBooking(request.resource.data) && request.resource.data.status == resource.data.status) ||
