@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Header } from './components/Header';
 import { HospitalList } from './components/HospitalList';
@@ -66,19 +66,6 @@ const MainContent: React.FC = () => {
 }
 
 const App: React.FC = () => {
-  // --- 카카오톡 외부 브라우저 실행 스크립트 추가 시작 ---
-  useEffect(() => {
-    const userAgent = navigator.userAgent.toLowerCase();
-    
-    if (userAgent.includes('kakaotalk')) {
-      // 현재 페이지의 전체 URL을 가져와서 인코딩
-      const currentUrl = window.location.href;
-      
-      // 카카오톡 외부 브라우저 스킴 실행
-      window.location.href = `kakaotalk://web/openExternalApp?url=${encodeURIComponent(currentUrl)}`;
-    }
-  }, []);
-  // --- 추가 끝 ---
   return (
     <FirebaseProvider>
       <LanguageProvider>
