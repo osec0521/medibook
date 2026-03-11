@@ -1,0 +1,74 @@
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { User, onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signOut } from 'firebase/auth';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { auth, db } from './firebase';
+
+interface FirebaseContextType {
+  user: User | null;
+  role: 'admin' | 'client' | null;
+  loading: boolean;
+  login: () => Promise<void>;
+  logout: () => Promise<void>;
+}
+
+const FirebaseContext = createContext<FirebaseContextType | undefined>(undefined);
+
+export const FirebaseProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [user, setUser] = useState<User | null>(null);
+  const [role, setRole] = useState<'admin' | 'client' | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      setUser(currentUser);
+      if (currentUser) {
+        // Fetch or create user profile
+        const userDocRef = doc(db, 'users', currentUser.uid);
+        const userDoc = await getDoc(userDocRef);
+
+        if (userDoc.exists()) {
+          setRole(userDoc.data().role);
+        } else {
+          // Default role for new users
+          const newRole = currentUser.email === 'osec0521@gmail.com' ? 'admin' : 'client';
+          await setDoc(userDocRef, {
+            uid: currentUser.uid,
+            email: currentUser.email,
+            displayName: currentUser.displayName,
+            role: newRole,
+            createdAt: new Date().toISOString()
+          });
+          setRole(newRole);
+        }
+      } else {
+        setRole(null);
+      }
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  const login = async () => {
+    const provider = new GoogleAuthProvider();
+    await signInWithPopup(auth, provider);
+  };
+
+  const logout = async () => {
+    await signOut(auth);
+  };
+
+  return (
+    <FirebaseContext.Provider value={{ user, role, loading, login, logout }}>
+      {children}
+    </FirebaseContext.Provider>
+  );
+};
+
+export const useFirebase = () => {
+  const context = useContext(FirebaseContext);
+  if (context === undefined) {
+    throw new Error('useFirebase must be used within a FirebaseProvider');
+  }
+  return context;
+};

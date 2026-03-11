@@ -1,0 +1,47 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "Information about the user, including their role.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "The unique ID of the user." },
+        "email": { "type": "string", "format": "email", "description": "The email of the user." },
+        "displayName": { "type": "string", "description": "The display name of the user." },
+        "role": { "type": "string", "enum": ["admin", "client"], "description": "The role of the user." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "When the user profile was created." }
+      },
+      "required": ["uid", "email", "role"]
+    },
+    "Booking": {
+      "title": "Hospital Booking",
+      "description": "A booking request for a hospital visit.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "The unique ID of the booking." },
+        "fullName": { "type": "string", "description": "The full name of the person booking." },
+        "phone": { "type": "string", "description": "The phone number of the person booking." },
+        "email": { "type": "string", "format": "email", "description": "The email of the person booking." },
+        "consent": { "type": "boolean", "description": "Whether the user consented to terms." },
+        "hospitalId": { "type": "string", "description": "The ID of the hospital being booked." },
+        "hospitalName": { "type": "string", "description": "The name of the hospital being booked." },
+        "date": { "type": "string", "format": "date", "description": "The date of the visit." },
+        "status": { "type": "string", "enum": ["pending", "confirmed", "cancelled"], "description": "The status of the booking." },
+        "userUid": { "type": "string", "description": "The UID of the user who made the booking." },
+        "loginEmail": { "type": "string", "format": "email", "description": "The login email of the user who made the booking." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "When the booking was created." }
+      },
+      "required": ["fullName", "phone", "email", "consent", "hospitalId", "hospitalName", "date", "status", "userUid", "createdAt"]
+    }
+  },
+  "firestore": {
+    "users/{userId}": {
+      "schema": "User",
+      "description": "Collection of user profiles."
+    },
+    "bookings/{bookingId}": {
+      "schema": "Booking",
+      "description": "Collection of hospital bookings."
+    }
+  }
+}

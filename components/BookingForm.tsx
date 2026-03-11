@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
 import { BookingFormData, BookingStatus } from '../types';
-import { submitBookingToSheet } from '../services/bookingService';
+import { submitBookingToFirestore } from '../services/bookingService';
 import { useLanguage } from '../LanguageContext';
+import { useFirebase } from '../FirebaseContext';
+import { HOSPITALS } from '../constants';
 
 export const BookingForm: React.FC = () => {
-  const { t } = useLanguage();
+  const { t, selectedHospitalId, language } = useLanguage();
+  const { user } = useFirebase();
   const [formData, setFormData] = useState<BookingFormData>({
     fullName: '',
     phone: '',
@@ -19,6 +22,8 @@ export const BookingForm: React.FC = () => {
   const [modalTitle, setModalTitle] = useState('');
   const [modalMessage, setModalMessage] = useState('');
   const [modalType, setModalType] = useState<'error' | 'info'>('error');
+
+  const selectedHospital = HOSPITALS.find(h => h.id === selectedHospitalId);
 
   const TERMS_CONTENT = `제1조 (목적 및 서비스)
 본 약관은 회사가 제공하는 메디컬·웰니스 케어 서비스 및 관련 상담, 예약 안내 서비스 이용에 관한 권리와 의무를 규정합니다.
@@ -66,6 +71,14 @@ export const BookingForm: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!user) {
+      setModalTitle('로그인 필요');
+      setModalMessage('예약을 위해 로그인이 필요합니다.');
+      setModalType('error');
+      setShowModal(true);
+      return;
+    }
+
     // Validation Logic: Check if any required field is missing
     const missingFields: string[] = [];
     if (!formData.fullName.trim()) missingFields.push(t.fullName);
@@ -83,14 +96,36 @@ export const BookingForm: React.FC = () => {
     }
 
     setStatus(BookingStatus.SUBMITTING);
-    const success = await submitBookingToSheet(formData);
     
-    if (success) {
+    const finalData = {
+      fullName: formData.fullName.trim(),
+      phone: formData.phone.trim(),
+      email: formData.email.trim(),
+      consent: formData.consent,
+      hospitalId: selectedHospitalId,
+      hospitalName: selectedHospital ? (language === 'ko' ? selectedHospital.nameKo : selectedHospital.name) : 'Unknown',
+      date: new Date().toISOString().split('T')[0] // Default to today for simplicity in this demo
+    };
+
+    const result = await submitBookingToFirestore(finalData as any, user.uid, user.email);
+    
+    if (result.success) {
       setStatus(BookingStatus.SUCCESS);
       setFormData({ fullName: '', phone: '', email: '', consent: false });
       setTimeout(() => setStatus(BookingStatus.IDLE), 3000);
     } else {
       setStatus(BookingStatus.ERROR);
+      if (result.errorType === 'phone') {
+        setModalTitle(language === 'ko' ? '등록 실패' : 'Registration Failed');
+        setModalMessage(language === 'ko' ? '이미 핸드폰 번호가 등록된 고객 입니다' : 'Customer with this phone number is already registered');
+        setModalType('error');
+        setShowModal(true);
+      } else if (result.errorType === 'email') {
+        setModalTitle(language === 'ko' ? '등록 실패' : 'Registration Failed');
+        setModalMessage(language === 'ko' ? '이미 이메일이 등록된 고객 입니다' : 'Customer with this email is already registered');
+        setModalType('error');
+        setShowModal(true);
+      }
     }
   };
 
