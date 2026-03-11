@@ -1,13 +1,13 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Header } from './components/Header';
 import { HospitalList } from './components/HospitalList';
 import { LocationMap } from './components/LocationMap';
 import { BookingForm } from './components/BookingForm';
 import { ChatWidget } from './components/ChatWidget';
 import { BrandShowcase } from './components/BrandShowcase';
-import { LanguageProvider, useLanguage } from './LanguageContext';
 import { AdminDashboard } from './components/AdminDashboard';
+import { LanguageProvider, useLanguage } from './LanguageContext';
 
 const MainContent: React.FC = () => {
   const { t } = useLanguage();
@@ -43,12 +43,12 @@ const MainContent: React.FC = () => {
 const App: React.FC = () => {
   return (
     <LanguageProvider>
-      <BrowserRouter>
+      <Router>
         <Routes>
           <Route path="/" element={<MainContent />} />
           <Route path="/admin" element={<AdminDashboard />} />
         </Routes>
-      </BrowserRouter>
+      </Router>
     </LanguageProvider>
   );
 };
