@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react'; // useEffect 추가
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Header } from './components/Header';
 import { HospitalList } from './components/HospitalList';
@@ -33,6 +33,11 @@ const MainContent: React.FC = () => {
         >
           Google로 로그인하기
         </button>
+        {/* 카카오톡 사용자에게만 보이는 수동 이동 안내 (선택 사항) */}
+        <p className="mt-4 text-xs text-gray-400">
+          카카오톡에서 로그인 오류가 발생하면 <br/>
+          우측 상단 '...' 버튼을 눌러 <b>'다른 브라우저로 열기'</b>를 눌러주세요.
+        </p>
       </div>
     );
   }
@@ -66,6 +71,19 @@ const MainContent: React.FC = () => {
 }
 
 const App: React.FC = () => {
+  // --- 카카오톡 외부 브라우저 실행 스크립트 추가 시작 ---
+  useEffect(() => {
+    const userAgent = navigator.userAgent.toLowerCase();
+    
+    if (userAgent.includes('kakaotalk')) {
+      // 현재 페이지의 전체 URL을 가져와서 인코딩
+      const currentUrl = window.location.href;
+      
+      // 카카오톡 외부 브라우저 스킴 실행
+      window.location.href = `kakaotalk://web/openExternalApp?url=${encodeURIComponent(currentUrl)}`;
+    }
+  }, []);
+  // --- 추가 끝 ---
   return (
     <FirebaseProvider>
       <LanguageProvider>
