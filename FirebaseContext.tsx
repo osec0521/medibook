@@ -55,8 +55,18 @@ export const FirebaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   }, []);
 
   const login = async () => {
-    const provider = new GoogleAuthProvider();
-    await signInWithPopup(auth, provider);
+    try {
+      const provider = new GoogleAuthProvider();
+      await signInWithPopup(auth, provider);
+    } catch (error: any) {
+      if (error.code === 'auth/popup-closed-by-user') {
+        // 사용자가 팝업을 닫은 경우 - 무시하거나 로그만 남김
+        console.log('로그인 팝업이 사용자에 의해 닫혔습니다.');
+      } else {
+        console.error("로그인 중 에러 발생:", error);
+        throw error;
+      }
+    }
   };
 
   const logout = async () => {
