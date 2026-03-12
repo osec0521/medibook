@@ -13,6 +13,21 @@ import { FirebaseProvider, useFirebase } from './FirebaseContext';
 const MainContent: React.FC = () => {
   const { t } = useLanguage();
   const { user, login, loading } = useFirebase();
+
+  const openExternalBrowser = () => {
+    const userAgent = navigator.userAgent.toLowerCase();
+    const currentUrl = window.location.href;
+
+    if (userAgent.includes('kakaotalk')) {
+      window.location.href = `kakaotalk://web/openExternalApp?url=${encodeURIComponent(currentUrl)}`;
+    } else if (userAgent.includes('android')) {
+      const intentUrl = `intent://${currentUrl.replace(/^https?:\/\//, '')}#Intent;scheme=https;package=com.android.chrome;end`;
+      window.location.href = intentUrl;
+    } else {
+      // 범용적인 새 창 열기 시도 (인앱 브라우저에서는 효과가 제한적일 수 있음)
+      window.open(currentUrl, '_blank');
+    }
+  };
   
   if (loading) {
     return (
@@ -29,14 +44,23 @@ const MainContent: React.FC = () => {
         <p className="text-gray-600 mb-8">서비스를 이용하시려면 로그인이 필요합니다.</p>
         <button 
           onClick={login}
-          className="bg-primary text-white px-8 py-3 rounded-xl font-bold shadow-lg hover:bg-primary-dark transition-all"
+          className="bg-primary text-white px-8 py-3 rounded-xl font-bold shadow-lg hover:bg-primary-dark transition-all w-[310px] mb-4"
         >
           Google로 로그인하기
         </button>
-        {/* 카카오톡 사용자에게만 보이는 수동 이동 안내 (선택 사항) */}
-        <p className="mt-4 text-xs text-gray-400">
+        
+        {/* 카카오톡/인앱 브라우저 대응 버튼 */}
+        <button 
+          onClick={openExternalBrowser}
+          className="bg-white text-gray-700 border border-gray-300 px-8 py-3 rounded-xl font-medium shadow-sm hover:bg-gray-50 transition-all w-[310px] mb-6"
+        >
+          다른 브라우저로 열기 (크롬/사파리)
+        </button>
+
+        <p className="text-xs text-gray-400 leading-relaxed">
           카카오톡에서 로그인 오류가 발생하면 <br/>
-          우측 상단 '...' 버튼을 눌러 <b>'다른 브라우저로 열기'</b>를 눌러주세요.
+          우측 상단 '...' 버튼을 눌러 <b>'다른 브라우저로 열기'</b> <br/>
+          또는 위의 <b>'다른 브라우저로 열기'</b> 버튼을 눌러주세요.
         </p>
       </div>
     );
