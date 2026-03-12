@@ -71,16 +71,28 @@ const MainContent: React.FC = () => {
 }
 
 const App: React.FC = () => {
-  // --- 카카오톡 외부 브라우저 실행 스크립트 추가 시작 ---
+  // --- 인-앱 브라우저(카카오톡 등) 외부 브라우저 실행 스크립트 추가 시작 ---
   useEffect(() => {
     const userAgent = navigator.userAgent.toLowerCase();
+    const isKakaotalk = userAgent.includes('kakaotalk');
+    const isLine = userAgent.includes('line');
+    const isInstagram = userAgent.includes('instagram');
+    const isFacebook = userAgent.includes('fbav');
     
-    if (userAgent.includes('kakaotalk')) {
-      // 현재 페이지의 전체 URL을 가져와서 인코딩
+    // 인-앱 브라우저인 경우 외부 브라우저로 열기 시도
+    if (isKakaotalk || isLine || isInstagram || isFacebook) {
       const currentUrl = window.location.href;
       
-      // 카카오톡 외부 브라우저 스킴 실행
-      window.location.href = `kakaotalk://web/openExternalApp?url=${encodeURIComponent(currentUrl)}`;
+      if (isKakaotalk) {
+        // 카카오톡 전용 외부 브라우저 스킴
+        window.location.href = `kakaotalk://web/openExternalApp?url=${encodeURIComponent(currentUrl)}`;
+      } else {
+        // 기타 인-앱 브라우저를 위한 범용 처리 (안드로이드 위주)
+        if (userAgent.includes('android')) {
+          const intentUrl = `intent://${currentUrl.replace(/^https?:\/\//, '')}#Intent;scheme=https;package=com.android.chrome;end`;
+          window.location.href = intentUrl;
+        }
+      }
     }
   }, []);
   // --- 추가 끝 ---
