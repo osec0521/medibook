@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react'; // useState 추가
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useParams } from 'react-router-dom';
 import { ExternalLink, Copy, Check } from 'lucide-react'; // 아이콘 추가
+import { collection, query, where, getDocs } from 'firebase/firestore';
+import { db } from './firebase';
 import { Header } from './components/Header';
 import { HospitalList } from './components/HospitalList';
 import { LocationMap } from './components/LocationMap';
@@ -12,9 +14,38 @@ import { LanguageProvider, useLanguage } from './LanguageContext';
 import { FirebaseProvider, useFirebase } from './FirebaseContext';
 
 const MainContent: React.FC = () => {
+  const { tenantId } = useParams();
   const { t } = useLanguage();
   const { user, login, loading } = useFirebase();
   const [copied, setCopied] = useState(false);
+  const [partnerInfo, setPartnerInfo] = useState<any>(null);
+
+  useEffect(() => {
+    const fetchPartner = async () => {
+      try {
+        const targetTenantId = tenantId || 'default';
+        const q = query(collection(db, 'partners'), where('tenantId', '==', targetTenantId));
+        const snapshot = await getDocs(q);
+        if (!snapshot.empty) {
+          setPartnerInfo(snapshot.docs[0].data());
+        } else {
+          setPartnerInfo(null);
+        }
+      } catch (error) {
+        console.error("Error fetching partner info:", error);
+        setPartnerInfo(null);
+      }
+    };
+    fetchPartner();
+  }, [tenantId]);
+
+  useEffect(() => {
+    if (partnerInfo?.seoTitle) {
+      document.title = partnerInfo.seoTitle;
+    } else {
+      document.title = 'MediBook - Medical & Wellness Booking';
+    }
+  }, [partnerInfo]);
 
   const openExternalBrowser = () => {
     const userAgent = navigator.userAgent.toLowerCase();
@@ -111,8 +142,8 @@ const MainContent: React.FC = () => {
       
       <main>
         <div className="px-4 pt-6 pb-2">
-          <h1 className="text-[#111618] dark:text-white tracking-tight text-[32px] font-bold leading-tight text-left mb-2">
-            {t.findBook}
+          <h1 className="text-[#111618] dark:text-white tracking-tight text-[32px] font-bold leading-tight text-left mb-2 break-keep">
+            {partnerInfo?.displayTitle || t.findBook}
           </h1>
           <p className="text-gray-600 dark:text-gray-400 text-base font-normal leading-normal">
             {t.scheduleVisit}
@@ -125,10 +156,10 @@ const MainContent: React.FC = () => {
         
         <LocationMap />
         
-        <BookingForm />
+        <BookingForm tenantId={tenantId} />
       </main>
 
-      <ChatWidget />
+      <ChatWidget kakaoLink={partnerInfo?.kakaoLink} />
     </div>
   );
 }
@@ -165,6 +196,7 @@ const App: React.FC = () => {
         <Router>
           <Routes>
             <Route path="/" element={<MainContent />} />
+            <Route path="/:tenantId" element={<MainContent />} />
             <Route path="/admin" element={<AdminDashboard />} />
           </Routes>
         </Router>

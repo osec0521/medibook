@@ -27,6 +27,7 @@ export const submitBookingToFirestore = async (data: BookingFormData, userUid: s
       userUid,
       loginEmail: userEmail,
       status: 'pending',
+      tenantId: data.tenantId || 'default',
       createdAt: new Date().toISOString()
     };
 

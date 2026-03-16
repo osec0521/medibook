@@ -26,6 +26,7 @@ export interface BookingFormData {
   phone: string;
   email: string;
   consent: boolean;
+  tenantId?: string;
 }
 
 export enum BookingStatus {

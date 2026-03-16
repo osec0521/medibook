@@ -2,7 +2,7 @@ import { Hospital } from './types';
 
 export const TRANSLATIONS = {
   ko: {
-    findBook: "토마톡 120세 건강 지킴이 메디컬 및 웰니스 센터를 찾아 예약하세요",
+    findBook: "신라웰케어 120세 건강 지킴이 메디컬 및 웰니스 센터를 찾아 예약하세요",
     scheduleVisit: "가까운 메디컬 및 웰니스 센터에서 예약하세요.",
     location: "위치",
     getDirections: "카카오맵",
@@ -35,7 +35,7 @@ export const TRANSLATIONS = {
     hospitalDesc: "프리미엄 메디컬 & 웰니스 센터"
   },
   en: {
-    findBook: "Find & Book at Tomatalk 120-year Health Guardian Medical & Wellness Center",
+    findBook: "Find & Book at Shill Wellcare 120-year Health Guardian Medical & Wellness Center",
     scheduleVisit: "Schedule your visit with top hospitals in your area.",
     location: "Location",
     getDirections: "Kakao Map",

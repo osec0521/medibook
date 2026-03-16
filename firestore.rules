@@ -29,7 +29,20 @@ service cloud.firestore {
     //   - status: string (required, enum: ['pending', 'confirmed', 'cancelled']) - The status of the booking.
     //   - userUid: string (required, matches auth.uid) - The UID of the user who made the booking.
     //   - loginEmail: string (optional, email format) - The login email of the user who made the booking.
+    //   - tenantId: string (required) - The ID of the partner/tenant.
     //   - createdAt: string (required, date-time format) - When the booking was created.
+    //
+    // Collection: partners
+    // Document ID: {partnerId} (auto-generated)
+    // Fields:
+    //   - id: string (optional)
+    //   - name: string (required)
+    //   - tenantId: string (required, unique)
+    //   - adminEmail: string (required, email format)
+    //   - seoTitle: string (required)
+    //   - displayTitle: string (required)
+    //   - kakaoLink: string (optional)
+    //   - createdAt: string (required, date-time format)
     //
     // ===============================================================
 
@@ -81,7 +94,7 @@ service cloud.firestore {
     }
 
     function isValidBooking(data) {
-      return hasRequiredFields(['fullName', 'phone', 'email', 'consent', 'hospitalId', 'hospitalName', 'date', 'status', 'userUid', 'createdAt']) &&
+      return hasRequiredFields(['fullName', 'phone', 'email', 'consent', 'hospitalId', 'hospitalName', 'date', 'status', 'userUid', 'createdAt', 'tenantId']) &&
              data.fullName is string && data.fullName.size() > 0 && data.fullName.size() <= 100 &&
              data.phone is string && data.phone.size() > 0 && data.phone.size() <= 20 &&
              data.email is string && isValidEmail(data.email) &&
@@ -92,6 +105,18 @@ service cloud.firestore {
              data.status in ['pending', 'confirmed', 'cancelled'] &&
              data.userUid is string && data.userUid == request.auth.uid &&
              (data.loginEmail == null || isValidEmail(data.loginEmail)) &&
+             data.tenantId is string &&
+             data.createdAt is string;
+    }
+
+    function isValidPartner(data) {
+      return hasRequiredFields(['name', 'tenantId', 'adminEmail', 'seoTitle', 'displayTitle', 'createdAt']) &&
+             data.name is string && data.name.size() > 0 &&
+             data.tenantId is string && data.tenantId.size() > 0 &&
+             isValidEmail(data.adminEmail) &&
+             data.seoTitle is string &&
+             data.displayTitle is string &&
+             (data.kakaoLink == null || data.kakaoLink is string) &&
              data.createdAt is string;
     }
 
@@ -116,6 +141,11 @@ service cloud.firestore {
                       isAdmin()
                     );
       allow delete: if isAdmin();
+    }
+
+    match /partners/{partnerId} {
+      allow read: if true; // Publicly readable for tenant lookup
+      allow create, update, delete: if isAdmin();
     }
 
     match /{path=**} {

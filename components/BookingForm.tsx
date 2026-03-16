@@ -5,7 +5,11 @@ import { useLanguage } from '../LanguageContext';
 import { useFirebase } from '../FirebaseContext';
 import { HOSPITALS } from '../constants';
 
-export const BookingForm: React.FC = () => {
+interface BookingFormProps {
+  tenantId?: string;
+}
+
+export const BookingForm: React.FC<BookingFormProps> = ({ tenantId }) => {
   const { t, selectedHospitalId, language } = useLanguage();
   const { user } = useFirebase();
   const [formData, setFormData] = useState<BookingFormData>({
@@ -104,6 +108,7 @@ export const BookingForm: React.FC = () => {
       consent: formData.consent,
       hospitalId: selectedHospitalId,
       hospitalName: selectedHospital ? (language === 'ko' ? selectedHospital.nameKo : selectedHospital.name) : 'Unknown',
+      tenantId: (tenantId === 'default' || !tenantId) ? '' : tenantId,
       date: new Date().toISOString().split('T')[0] // Default to today for simplicity in this demo
     };
 

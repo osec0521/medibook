@@ -1,9 +1,14 @@
 import React from 'react';
 import { useLanguage } from '../LanguageContext';
 
-export const ChatWidget: React.FC = () => {
+interface ChatWidgetProps {
+  kakaoLink?: string;
+}
+
+export const ChatWidget: React.FC<ChatWidgetProps> = ({ kakaoLink }) => {
   const { t } = useLanguage();
-  const KAKAO_LINK = 'https://open.kakao.com/o/sh2HOMki';
+  const DEFAULT_KAKAO_LINK = 'https://open.kakao.com/o/sh2HOMki';
+  const finalLink = kakaoLink || DEFAULT_KAKAO_LINK;
 
   return (
     <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end">
@@ -20,7 +25,7 @@ export const ChatWidget: React.FC = () => {
 
       {/* KakaoTalk Link Button */}
       <a 
-        href={KAKAO_LINK}
+        href={finalLink}
         target="_blank"
         rel="noopener noreferrer"
         className="flex h-14 w-14 items-center justify-center rounded-full bg-[#FEE500] text-[#3C1E1E] shadow-lg hover:scale-110 active:scale-95 transition-all duration-200"
