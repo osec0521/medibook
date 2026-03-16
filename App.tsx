@@ -23,7 +23,7 @@ const MainContent: React.FC = () => {
   useEffect(() => {
     const fetchPartner = async () => {
       try {
-        const targetTenantId = tenantId || 'default';
+        const targetTenantId = tenantId || 'tomatok';
         const q = query(collection(db, 'partners'), where('tenantId', '==', targetTenantId));
         const snapshot = await getDocs(q);
         if (!snapshot.empty) {
@@ -156,7 +156,7 @@ const MainContent: React.FC = () => {
         
         <LocationMap />
         
-        <BookingForm tenantId={tenantId} />
+        <BookingForm tenantId={tenantId || 'tomatok'} />
       </main>
 
       <ChatWidget kakaoLink={partnerInfo?.kakaoLink} />
