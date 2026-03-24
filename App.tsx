@@ -166,43 +166,72 @@ const MainContent: React.FC = () => {
 }
 
 const App: React.FC = () => {
- const [isRedirecting, setIsRedirecting] = React.useState(false);
+  const [isRedirecting, setIsRedirecting] = React.useState(false);
+  const [showManualButton, setShowManualButton] = React.useState(false);
+
+  const handleRedirect = () => {
+    const userAgent = window.navigator.userAgent.toLowerCase();
+    const url = window.location.href;
+    const sep = url.includes('?') ? '&' : '?';
+    const finalUrl = url.includes('redirected=true') ? url : url + sep + 'redirected=true';
+
+    if (userAgent.includes('kakaotalk')) {
+      // 카카오톡 외부 브라우저 실행
+      window.location.href = `kakaotalk://web/openExternalApp?url=${encodeURIComponent(finalUrl)}`;
+    } else if (userAgent.includes('android')) {
+      // 안드로이드 크롬 실행 인텐트
+      window.location.href = `intent://${finalUrl.replace(/^https?:\/\//, '')}#Intent;scheme=https;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;package=com.android.chrome;end`;
+    } else {
+      // iOS 등 기타: 수동 복사 유도 혹은 새창
+      window.open(finalUrl, '_blank');
+    }
+  };
 
   useEffect(() => {
     const userAgent = window.navigator.userAgent.toLowerCase();
-    const url = window.location.href;
+    const isInApp = /kakaotalk|instagram|line|fbav|fb_iab|messenger|naver/i.test(userAgent);
+    const hasRedirected = window.location.href.includes('redirected=true');
 
-    // 1. 인앱 브라우저 여부 확인
-    const isKakao = /kakaotalk/i.test(userAgent);
-    const isOtherInApp = /instagram|line|fbav|fb_iab|messenger|naver/i.test(userAgent);
-    const isAndroid = /android/i.test(userAgent);
-
-    // 2. 이미 리다이렉트 시도를 했는지 확인 (URL 파라미터 체크로 무한루프 방지)
-    const hasRedirected = url.includes('redirected=true');
-
-    if ((isKakao || (isOtherInApp && isAndroid)) && !hasRedirected) {
-      setIsRedirecting(true); // 이동 중임을 표시 (흰 화면 방지)
+    if (isInApp && !hasRedirected) {
+      setIsRedirecting(true);
       
-      const sep = url.includes('?') ? '&' : '?';
-      const finalUrl = url + sep + 'redirected=true';
+      // 1. 즉시 자동 이동 시도
+      handleRedirect();
 
-      if (isKakao) {
-        // 카카오톡 자동 탈출
-        window.location.href = `kakaotalk://web/openExternalApp?url=${encodeURIComponent(finalUrl)}`;
-      } else if (isAndroid) {
-        // 안드로이드 타 인앱(인스타 등) 크롬 강제 실행
-        window.location.href = `intent://${finalUrl.replace(/^https?:\/\//, '')}#Intent;scheme=https;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;package=com.android.chrome;end`;
-      }
+      // 2. 1.5초 후에도 페이지가 안 바뀌었다면 수동 버튼 표시
+      const timer = setTimeout(() => {
+        setShowManualButton(true);
+      }, 1500);
+
+      return () => clearTimeout(timer);
     }
   }, []);
 
-  // 리다이렉트 중일 때 보여줄 화면 (흰 화면 방지용 스플래시)
   if (isRedirecting) {
     return (
-      <div className="flex flex-col items-center justify-center h-screen bg-white">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary mb-4"></div>
-        <p className="text-gray-600 font-medium">안전한 로그인을 위해</p>
-        <p className="text-gray-600 font-medium">외부 브라우저로 이동 중입니다...</p>
+      <div className="flex flex-col items-center justify-center h-screen bg-white p-6 text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-6"></div>
+        
+        <h2 className="text-xl font-bold mb-2">안전한 로그인을 위해</h2>
+        <p className="text-gray-500 mb-8 leading-relaxed">
+          외부 브라우저(Chrome, Safari)로<br/> 
+          자동 이동 중입니다.
+        </p>
+
+        {/* 자동 이동이 차단되었을 때만 나타나는 버튼 */}
+        {showManualButton && (
+          <div className="animate-fade-in w-full">
+            <button 
+              onClick={handleRedirect}
+              className="bg-primary text-white px-8 py-4 rounded-2xl font-bold shadow-2xl hover:bg-primary-dark transition-all w-full text-lg mb-4"
+            >
+              여기를 눌러 계속하기
+            </button>
+            <p className="text-xs text-gray-400">
+              이동이 안 될 경우 버튼을 직접 눌러주세요.
+            </p>
+          </div>
+        )}
       </div>
     );
   }
