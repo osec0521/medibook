@@ -166,31 +166,46 @@ const MainContent: React.FC = () => {
 }
 
 const App: React.FC = () => {
-  // [강화된 자동 탈출 로직]
+ const [isRedirecting, setIsRedirecting] = React.useState(false);
+
   useEffect(() => {
     const userAgent = window.navigator.userAgent.toLowerCase();
-    const currentUrl = window.location.href;
+    const url = window.location.href;
 
-    // 1. 카카오톡 내부 브라우저인 경우
-    if (userAgent.includes('kakaotalk')) {
-      // 카카오톡 전용 외부 브라우저 호출 스킴 실행
-      window.location.href = `kakaotalk://web/openExternalApp?url=${encodeURIComponent(currentUrl)}`;
-      return; // 실행 후 아래 로직 중단
-    }
-
-    // 2. 기타 인앱 브라우저 (인스타, 페이스북, 라인 등) + 안드로이드 환경
-    const isInApp = /instagram|line|fbav|fb_iab|messenger|naver/i.test(userAgent);
+    // 1. 인앱 브라우저 여부 확인
+    const isKakao = /kakaotalk/i.test(userAgent);
+    const isOtherInApp = /instagram|line|fbav|fb_iab|messenger|naver/i.test(userAgent);
     const isAndroid = /android/i.test(userAgent);
 
-    if (isInApp && isAndroid) {
-      // 안드로이드 크롬 강제 실행 인텐트
-      const intentUrl = `intent://${currentUrl.replace(/^https?:\/\//, '')}#Intent;scheme=https;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;package=com.android.chrome;end`;
-      window.location.href = intentUrl;
+    // 2. 이미 리다이렉트 시도를 했는지 확인 (URL 파라미터 체크로 무한루프 방지)
+    const hasRedirected = url.includes('redirected=true');
+
+    if ((isKakao || (isOtherInApp && isAndroid)) && !hasRedirected) {
+      setIsRedirecting(true); // 이동 중임을 표시 (흰 화면 방지)
+      
+      const sep = url.includes('?') ? '&' : '?';
+      const finalUrl = url + sep + 'redirected=true';
+
+      if (isKakao) {
+        // 카카오톡 자동 탈출
+        window.location.href = `kakaotalk://web/openExternalApp?url=${encodeURIComponent(finalUrl)}`;
+      } else if (isAndroid) {
+        // 안드로이드 타 인앱(인스타 등) 크롬 강제 실행
+        window.location.href = `intent://${finalUrl.replace(/^https?:\/\//, '')}#Intent;scheme=https;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;package=com.android.chrome;end`;
+      }
     }
-    
-    // 3. iOS 인앱 브라우저의 경우 (정책상 강제 실행 불가)
-    // 이 경우는 MainContent에서 보여주는 "다른 브라우저로 열기" 안내가 최선입니다.
   }, []);
+
+  // 리다이렉트 중일 때 보여줄 화면 (흰 화면 방지용 스플래시)
+  if (isRedirecting) {
+    return (
+      <div className="flex flex-col items-center justify-center h-screen bg-white">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary mb-4"></div>
+        <p className="text-gray-600 font-medium">안전한 로그인을 위해</p>
+        <p className="text-gray-600 font-medium">외부 브라우저로 이동 중입니다...</p>
+      </div>
+    );
+  }
   // --- 추가 끝 ---
   return (
     <FirebaseProvider>
