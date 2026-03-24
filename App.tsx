@@ -13,6 +13,7 @@ import { AdminDashboard } from './components/AdminDashboard';
 import { LanguageProvider, useLanguage } from './LanguageContext';
 import { FirebaseProvider, useFirebase } from './FirebaseContext';
 
+
 const MainContent: React.FC = () => {
   const { tenantId } = useParams();
   const { t } = useLanguage();
@@ -168,14 +169,21 @@ const App: React.FC = () => {
   // --- 인-앱 브라우저(카카오톡 등) 외부 브라우저 실행 스크립트 추가 시작 ---
   useEffect(() => {
     const userAgent = window.navigator.userAgent.toLowerCase();
-    const isInApp = /kakaotalk|instagram|line|naver|fbav|messenger/i.test(userAgent);
+    const url = window.location.href;
+
+    // 카카오톡, 인스타그램, 라인, 페이스북 등 인앱 브라우저 여부 확인
+    const isInApp = /kakaotalk|instagram|line|fbav|fb_iab|messenger|naver/i.test(userAgent);
 
     if (isInApp) {
-      // 안드로이드는 intent://로 Chrome 실행, iOS는 별도 안내가 필요할 수 있음
       if (userAgent.includes('kakaotalk')) {
-        window.location.href = 'kakaotalk://web/openExternalApp?url=' + encodeURIComponent(window.location.href);
+        // 카카오톡 전용 외부 브라우저 실행 스킴
+        window.location.href = `kakaotalk://web/openExternalApp?url=${encodeURIComponent(url)}`;
+      } else if (userAgent.includes('iphone') || userAgent.includes('ipad') || userAgent.includes('ipod')) {
+        // iOS(인스타/페이스북 등)에서 외부 브라우저 유도를 위한 안내 (직접 열기는 애플 정책상 제한적)
+      } else {
+        // 안드로이드 일반 인앱 브라우저 탈출 스킴
+        window.location.href = `intent://${url.replace(/https?:\/\//, '')}#Intent;scheme=https;package=com.android.chrome;end`;
       }
-      // 일반적인 외부 브라우저 실행 유도 로직 추가...
     }
   }, []);
   // --- 추가 끝 ---
