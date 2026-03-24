@@ -9,21 +9,6 @@
     <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
-    <script type="text/javascript">
-    (function() {
-      var userAgent = navigator.userAgent.toLowerCase();
-      var targetUrl = window.location.href;
-
-      // 1. 카카오톡 자동 탈출
-      if (userAgent.indexOf('kakaotalk') > -1) {
-        window.location.href = 'kakaotalk://web/openExternalApp?url=' + encodeURIComponent(targetUrl);
-      } 
-      // 2. 안드로이드 인앱(네이버, 라인, 인스타 등) 자동 탈출
-      else if (userAgent.indexOf('android') > -1 && /line|naver|fbav|instagram|messenger/i.test(userAgent)) {
-        window.location.href = 'intent://' + targetUrl.replace(/^https?:\/\//, '') + '#Intent;scheme=https;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;package=com.android.chrome;end';
-      }
-    })();
-  </script>
     <script>
       tailwind.config = {
         darkMode: "class",
@@ -81,6 +66,34 @@
 }
 </script>
 <link rel="stylesheet" href="/index.css">
+<script type="text/javascript">
+  (function() {
+    try {
+      var userAgent = navigator.userAgent.toLowerCase();
+      var targetUrl = window.location.href;
+
+      // 이미 외부 브라우저로 이동 중인지 확인하는 플래그 (무한 루프 방지)
+      if (targetUrl.indexOf('is_redirected=true') > -1) return;
+
+      // 1. 카카오톡 감지
+      if (userAgent.indexOf('kakaotalk') > -1) {
+        var sep = targetUrl.indexOf('?') > -1 ? '&' : '?';
+        var finalUrl = targetUrl + sep + 'is_redirected=true';
+        
+        // 이동 시도
+        window.location.href = 'kakaotalk://web/openExternalApp?url=' + encodeURIComponent(finalUrl);
+      } 
+      // 2. 안드로이드 기타 인앱 (인스타, 라인, 네이버 등)
+      else if (userAgent.indexOf('android') > -1 && /line|naver|fbav|instagram|messenger/i.test(userAgent)) {
+        var cleanUrl = targetUrl.replace(/^https?:\/\//, '');
+        window.location.href = 'intent://' + cleanUrl + '#Intent;scheme=https;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;package=com.android.chrome;end';
+      }
+    } catch (e) {
+      // 에러 발생 시 콘솔에만 찍고 앱 실행은 방해하지 않음
+      console.error("Redirect script error:", e);
+    }
+  })();
+</script>
 </head>
   <body class="bg-gray-100 dark:bg-gray-900 font-display antialiased">
     <div id="root"></div>
